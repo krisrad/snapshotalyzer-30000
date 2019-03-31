@@ -1,7 +1,22 @@
 import boto3
+import sys
+import click
+
+session = boto3.Session(profile_name='snapshotalyzer')
+ec2 = session.resource('ec2')
+
+@click.command()
+def list_instances():
+    "List EC2 Instances"
+    for i in ec2.instances.all():
+        print (', '.join((
+            i.id,
+            i.instance_type,
+            i.placement['AvailabilityZone'],
+            i.state['Name'],
+            i.public_dns_name
+        )))
 
 if __name__ == '__main__':
-    session = boto3.Session(profile_name='snapshotalyzer')
-    ec2 = session.resource('ec2')
-    for i in ec2.instances.all():
-        print (i)
+    # print(sys.argv)
+    list_instances()
