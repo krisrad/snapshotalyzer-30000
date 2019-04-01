@@ -13,7 +13,8 @@ snapshotalyzer uses the configuration file created by the AWS cli.
 
 ## Running
 
-`pipenv run python shotty\ec2test.py <command> <--project=PROJECT>`
+`pipenv run python shotty\ec2test.py <command> <subcommand> <--project=PROJECT>`
 
-*command* is list, start or stop_instances
+*command* is instances, volumes or snapshots
+*subcommand* depends on command
 *project* is optional

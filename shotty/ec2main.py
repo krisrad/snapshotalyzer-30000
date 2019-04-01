@@ -14,9 +14,58 @@ def filter_instances(project):
         instances = ec2.instances.all()
     return instances
 
-@click.group()
+@click.group('')
+def cli():
+    """snapshotalyzer manages snapshots"""
+
+@cli.group('snapshots')
+def snapshots():
+    """commands for snapshots"""
+
+@snapshots.command('list')
+@click.option('--project', default=None,
+    help="Only snapshots of volumes of instances for project(tag Project:<name>)")
+def list_snapshots(project):
+    "List snapshots"
+    instances = filter_instances(project)
+    for i in instances:
+        for v in i.volumes.all():
+            for s in v.snapshots.all():
+                print(", ".join((
+                    s.id,
+                    v.id,
+                    i.id,
+                    s.state,
+                    s.progress,
+                    s.start_time.strftime("%c")
+                )))
+    return
+
+@cli.group('volumes')
+def volumes():
+    """Commands for volumes"""
+
+@volumes.command('list')
+@click.option('--project', default=None,
+    help="Only volumes of instances for project (tag Project:<name>)")
+def list_volumes(project):
+    "List EC2 volumes"
+    instances = filter_instances(project)
+    for i in instances:
+        for v in i.volumes.all():
+            print (', '.join((
+                v.id,
+                i.id,
+                v.state,
+                str(v.size) + "GiB",
+                v.encrypted and "Encrypted" or "Not Encrypted"
+            )))
+    return
+
+
+@cli.group('instances')
 def instances():
-    """Commands for insances"""
+    """Commands for instances"""
 
 @instances.command('list')
 @click.option('--project', default=None,
@@ -56,7 +105,18 @@ def start_instances(project):
         i.start()
     return
 
+@instances.command('snapshot', help="create snapshots of all volumes")
+@click.option('--project', default=None, help="Only instances for project (tag Project:<name>)")
+def create_snapshots(project):
+    "Create snapshots for EC2 instances"
+    instances = filter_instances(project)
+    for i in instances:
+        for v in i.volumes.all():
+            print("Creating snapshots of {0}".format(v.id))
+            v.create_snapshot(Description="Created by snapshotalyzer 30000")
+    return
+
 
 if __name__ == '__main__':
     # print(sys.argv)
-    instances();
+    cli();
